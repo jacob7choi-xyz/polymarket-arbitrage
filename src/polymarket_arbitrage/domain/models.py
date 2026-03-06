@@ -221,12 +221,8 @@ class ArbitrageOpportunity(BaseModel):
         default_factory=datetime.now,
         description="When opportunity was detected",
     )
-    expected_profit_per_dollar: Decimal = Field(
-        description="Expected profit per $1 invested"
-    )
-    recommended_position_size: Decimal = Field(
-        description="Recommended position size (USD)"
-    )
+    expected_profit_per_dollar: Decimal = Field(description="Expected profit per $1 invested")
+    recommended_position_size: Decimal = Field(description="Recommended position size (USD)")
 
     class Config:
         frozen = True
@@ -331,13 +327,13 @@ if __name__ == "__main__":
             recommended_position_size=Decimal("100"),
         )
 
-        print(f"\nOpportunity detected!")
+        print("\nOpportunity detected!")
         print(f"Position size: ${opportunity.recommended_position_size}")
         print(f"Expected profit: ${opportunity.total_expected_profit}")
         print(f"Expected ROI: {opportunity.expected_roi_percent}%")
 
     # Example 4: Immutability test
     try:
-        market.active = False  # type: ignore
+        market.active = False
     except Exception as e:
         print(f"\nImmutability test: {type(e).__name__} (models are frozen)")

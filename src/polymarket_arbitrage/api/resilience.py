@@ -16,12 +16,13 @@ Interview Points:
 
 import asyncio
 import random
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta
 from enum import Enum
 from functools import wraps
-from typing import Any, Awaitable, Callable, TypeVar
+from typing import Any, TypeVar
 
-from ..domain.exceptions import CircuitBreakerOpenError, RateLimitError
+from ..domain.exceptions import CircuitBreakerOpenError
 from ..monitoring.logging import get_logger
 
 logger = get_logger(__name__)
@@ -248,7 +249,7 @@ class CircuitBreaker:
                 await self._on_success()
                 return result
 
-            except self.expected_exception as e:
+            except self.expected_exception:
                 await self._on_failure()
                 raise
 

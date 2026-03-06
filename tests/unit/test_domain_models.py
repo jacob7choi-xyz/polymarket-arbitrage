@@ -18,8 +18,8 @@ from datetime import datetime
 from decimal import Decimal
 
 import pytest
-
-from src.domain.models import ArbitrageOpportunity, Market, Token
+from polymarket_arbitrage.domain.models import ArbitrageOpportunity, Market, Token
+from pydantic import ValidationError
 
 
 class TestToken:
@@ -47,8 +47,8 @@ class TestToken:
 
     def test_token_immutability(self, sample_yes_token: Token) -> None:
         """Test token is immutable (frozen)."""
-        with pytest.raises(Exception):  # Pydantic raises validation error
-            sample_yes_token.price = Decimal("0.50")  # type: ignore
+        with pytest.raises(ValidationError):
+            sample_yes_token.price = Decimal("0.50")
 
 
 class TestMarket:
@@ -71,9 +71,7 @@ class TestMarket:
         # sample_market has 0.48 + 0.48 = 0.96 < 0.99
         assert sample_market.is_arbitrage_opportunity is True
 
-    def test_is_arbitrage_opportunity_false(
-        self, sample_market_no_arbitrage: Market
-    ) -> None:
+    def test_is_arbitrage_opportunity_false(self, sample_market_no_arbitrage: Market) -> None:
         """Test no arbitrage when YES + NO >= 0.99."""
         # sample_market_no_arbitrage has 0.50 + 0.50 = 1.00 >= 0.99
         assert sample_market_no_arbitrage.is_arbitrage_opportunity is False
@@ -131,8 +129,8 @@ class TestMarket:
 
     def test_market_immutability(self, sample_market: Market) -> None:
         """Test market is immutable."""
-        with pytest.raises(Exception):
-            sample_market.active = False  # type: ignore
+        with pytest.raises(ValidationError):
+            sample_market.active = False
 
 
 class TestArbitrageOpportunity:

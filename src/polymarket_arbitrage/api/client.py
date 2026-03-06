@@ -208,7 +208,7 @@ class PolymarketClient:
                 response_size=len(response.content),
             )
 
-            return data
+            return dict(data) if isinstance(data, dict) else list(data)
 
         except httpx.TimeoutException as e:
             logger.warning("api_request_timeout", method=method, url=url, error=str(e))
@@ -317,6 +317,8 @@ class PolymarketClient:
         # Validate response with Pydantic
         # Why validate? API might return unexpected format, fail fast
         try:
+            if not isinstance(data, dict):
+                raise ValueError(f"Expected dict response, got {type(data).__name__}")
             return MarketResponse(**data)
         except ValueError as e:
             logger.error(

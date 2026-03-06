@@ -12,12 +12,11 @@ Interview Point - Test Fixtures:
 - Reduces boilerplate in tests
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
-
-from src.domain.models import ArbitrageOpportunity, Market, Token
+from polymarket_arbitrage.domain.models import ArbitrageOpportunity, Market, Token
 
 
 @pytest.fixture
@@ -55,7 +54,7 @@ def sample_market(sample_yes_token: Token, sample_no_token: Token) -> Market:
         no_token=sample_no_token,
         volume=Decimal("50000"),
         liquidity=Decimal("10000"),
-        end_date=datetime(2025, 12, 31, 23, 59, 59),
+        end_date=datetime.now() + timedelta(days=365),
         active=True,
         category="crypto",
     )
@@ -80,7 +79,7 @@ def sample_market_no_arbitrage() -> Market:
         ),
         volume=Decimal("30000"),
         liquidity=Decimal("8000"),
-        end_date=datetime(2025, 12, 31),
+        end_date=datetime.now() + timedelta(days=365),
         active=True,
         category="crypto",
     )
@@ -105,7 +104,7 @@ def sample_market_low_liquidity() -> Market:
         ),
         volume=Decimal("100"),  # Low volume
         liquidity=Decimal("50"),  # Low liquidity
-        end_date=datetime(2025, 12, 31),
+        end_date=datetime.now() + timedelta(days=365),
         active=True,
     )
 

@@ -253,12 +253,12 @@ class ErrorResponse(BaseModel):
 if __name__ == "__main__":
     # Example 1: Parse token response with camelCase
     token_data = {"tokenId": "0x123", "outcome": "YES", "price": "0.48"}
-    token = TokenResponse(**token_data)
+    token = TokenResponse.model_validate(token_data)
     print(f"Token: {token.outcome} at {token.price}")
 
     # Example 2: Parse token response with snake_case
     token_data_snake = {"token_id": "0x456", "outcome": "no", "price": 0.52}
-    token2 = TokenResponse(**token_data_snake)
+    token2 = TokenResponse.model_validate(token_data_snake)
     print(f"Token: {token2.outcome} at {token2.price}")
 
     # Example 3: Parse market response
@@ -275,12 +275,14 @@ if __name__ == "__main__":
         "endDate": "2025-12-31T23:59:59Z",
         "active": True,
     }
-    market = MarketResponse(**market_data)
+    market = MarketResponse.model_validate(market_data)
     print(f"Market: {market.question}")
     print(f"Tokens: {len(market.tokens)}")
 
     # Example 4: Price validation
     try:
-        invalid_token = TokenResponse(tokenId="0x999", outcome="Yes", price="1.5")
+        invalid_token = TokenResponse.model_validate(
+            {"tokenId": "0x999", "outcome": "Yes", "price": "1.5"}
+        )
     except ValueError as e:
         print(f"Validation error: {e}")

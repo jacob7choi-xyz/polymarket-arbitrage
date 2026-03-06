@@ -19,12 +19,10 @@ import sys
 from typing import Any
 
 import structlog
-from structlog.types import EventDict, WrappedLogger
+from structlog.types import EventDict, Processor, WrappedLogger
 
 
-def add_app_context(
-    logger: WrappedLogger, method_name: str, event_dict: EventDict
-) -> EventDict:
+def add_app_context(logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
     """
     Add application-wide context to all log messages.
 
@@ -88,7 +86,7 @@ def configure_logging(log_level: str = "INFO", json_logs: bool = True) -> None:
     """
 
     # Shared processors (used by both JSON and console renderers)
-    shared_processors = [
+    shared_processors: list[Processor] = [
         # Add log level to event dict
         structlog.stdlib.add_log_level,
         # Add logger name to event dict

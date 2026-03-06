@@ -18,14 +18,14 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, HttpUrl, field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .constants import (
     ARBITRAGE_THRESHOLD,
     DEFAULT_INITIAL_CAPITAL,
-    DEFAULT_MAX_POSITION_SIZE,
     DEFAULT_MARKET_CATEGORIES,
+    DEFAULT_MAX_POSITION_SIZE,
     DEFAULT_POLL_INTERVAL,
     MIN_LIQUIDITY,
     MIN_VOLUME,
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     # API Configuration
     # ========================================================================
 
-    polymarket_api_url: HttpUrl = Field(
+    polymarket_api_url: str = Field(
         default="https://gamma-api.polymarket.com",
         description="Polymarket Gamma API base URL",
     )
@@ -227,7 +227,7 @@ class Settings(BaseSettings):
 
     @field_validator("max_position_size_usd")
     @classmethod
-    def validate_position_size(cls, v: Decimal, info) -> Decimal:
+    def validate_position_size(cls, v: Decimal, info: object) -> Decimal:
         """
         Ensure max position size doesn't exceed initial capital.
 

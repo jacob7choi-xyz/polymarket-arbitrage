@@ -13,6 +13,8 @@ Interview Point - Exception Design:
 - Use for control flow only when appropriate (not for validation)
 """
 
+from typing import Any
+
 
 class PolymarketError(Exception):
     """
@@ -97,7 +99,7 @@ class RateLimitError(APIError):
         self,
         message: str = "API rate limit exceeded",
         retry_after: int | None = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -119,7 +121,7 @@ class TimeoutError(APIError):
     - Monitoring: Track timeout rates (correlate with API degradation)
     """
 
-    def __init__(self, message: str = "API request timed out", **kwargs):
+    def __init__(self, message: str = "API request timed out", **kwargs: Any):
         super().__init__(message, **kwargs)
 
 
@@ -137,7 +139,7 @@ class ConnectionError(APIError):
     - Persistent: Circuit breaker opens, alert ops team
     """
 
-    def __init__(self, message: str = "Failed to connect to API", **kwargs):
+    def __init__(self, message: str = "Failed to connect to API", **kwargs: Any):
         super().__init__(message, **kwargs)
 
 
@@ -267,9 +269,7 @@ class InsufficientLiquidityError(StrategyError):
     """
 
     def __init__(self, market_id: str, liquidity: float, minimum: float):
-        super().__init__(
-            f"Insufficient liquidity: {liquidity} < {minimum} for market {market_id}"
-        )
+        super().__init__(f"Insufficient liquidity: {liquidity} < {minimum} for market {market_id}")
         self.market_id = market_id
         self.liquidity = liquidity
         self.minimum = minimum

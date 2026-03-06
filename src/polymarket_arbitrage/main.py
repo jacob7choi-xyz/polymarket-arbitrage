@@ -23,8 +23,6 @@ from decimal import Decimal
 from typing import Any, NoReturn
 
 from .api.client import PolymarketClient
-from .api.endpoints import PolymarketEndpoints
-from .api.parsers import ResponseParser
 from .api.resilience import CircuitBreaker, RateLimiter
 from .config.settings import Settings, get_settings
 from .domain.models import Market, Token
@@ -221,7 +219,9 @@ class Application:
                     break
 
                 all_raw_markets.extend(batch)
-                logger.debug("markets_batch_fetched", batch_size=len(batch), total=len(all_raw_markets))
+                logger.debug(
+                    "markets_batch_fetched", batch_size=len(batch), total=len(all_raw_markets)
+                )
 
                 # Stop if we got fewer than the limit (last page)
                 if len(batch) < limit:
@@ -265,7 +265,9 @@ class Application:
 
             outcomes = json.loads(outcomes_raw) if isinstance(outcomes_raw, str) else outcomes_raw
             prices = json.loads(prices_raw) if isinstance(prices_raw, str) else prices_raw
-            token_ids = json.loads(token_ids_raw) if isinstance(token_ids_raw, str) else token_ids_raw
+            token_ids = (
+                json.loads(token_ids_raw) if isinstance(token_ids_raw, str) else token_ids_raw
+            )
 
             if not outcomes or not prices or len(outcomes) != 2 or len(prices) != 2:
                 return None
@@ -402,7 +404,7 @@ class Application:
                 unrealized_pnl=performance["total_unrealized_pnl"],
                 realized_pnl=performance["total_realized_pnl"],
             )
-            update_position_count(performance["open_positions"])
+            update_position_count(int(performance["open_positions"]))
 
             # Update circuit breaker metrics
             if self.circuit_breaker:
@@ -530,9 +532,7 @@ async def async_main() -> None:
 
     # Startup
     try:
-        async with PolymarketClient(
-            base_url=str(settings.polymarket_api_url)
-        ) as client:
+        async with PolymarketClient(base_url=str(settings.polymarket_api_url)) as client:
             app.api_client = client
             await app.startup()
 

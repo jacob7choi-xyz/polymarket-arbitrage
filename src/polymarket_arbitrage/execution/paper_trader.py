@@ -18,7 +18,6 @@ Interview Point - Staged Rollout:
 from datetime import datetime
 from decimal import Decimal
 
-from ..domain.exceptions import InsufficientCapitalError
 from ..domain.models import ArbitrageOpportunity
 from ..monitoring.logging import get_logger
 from .position_tracker import PositionTracker
@@ -201,9 +200,7 @@ class PaperTrader:
         capital_deployed = self.initial_capital - self.available_capital
         total_pnl = Decimal(str(position_summary["total_pnl"]))
         roi_percent = (
-            (total_pnl / self.initial_capital * 100)
-            if self.initial_capital > 0
-            else Decimal("0")
+            (total_pnl / self.initial_capital * 100) if self.initial_capital > 0 else Decimal("0")
         )
 
         summary = {
@@ -211,9 +208,7 @@ class PaperTrader:
             "available_capital": float(self.available_capital),
             "capital_deployed": float(capital_deployed),
             "capital_utilization_percent": float(
-                (capital_deployed / self.initial_capital * 100)
-                if self.initial_capital > 0
-                else 0
+                (capital_deployed / self.initial_capital * 100) if self.initial_capital > 0 else 0
             ),
             "trades_executed": self._trade_count,
             "open_positions": position_summary["open_positions"],
@@ -258,8 +253,8 @@ if __name__ == "__main__":
     - Can validate strategy before risking capital
     """
     import asyncio
-    from datetime import datetime
-    from ..domain.models import Token, Market, ArbitrageOpportunity
+
+    from ..domain.models import ArbitrageOpportunity, Market, Token
 
     async def demo_paper_trading() -> None:
         print("=== Paper Trading Demo ===\n")

@@ -17,10 +17,9 @@ Interview Point - Testing Stateful Components:
 from decimal import Decimal
 
 import pytest
-
-from src.domain.models import ArbitrageOpportunity
-from src.execution.paper_trader import PaperTrader
-from src.execution.position_tracker import PositionTracker
+from polymarket_arbitrage.domain.models import ArbitrageOpportunity
+from polymarket_arbitrage.execution.paper_trader import PaperTrader
+from polymarket_arbitrage.execution.position_tracker import PositionTracker
 
 
 class TestPaperTrader:
@@ -69,9 +68,7 @@ class TestPaperTrader:
         await trader.execute_arbitrage(sample_opportunity)
 
         # Position should exist
-        position = trader.position_tracker.get_position(
-            sample_opportunity.market.market_id
-        )
+        position = trader.position_tracker.get_position(sample_opportunity.market.market_id)
         assert position is not None
         assert position.market_id == sample_opportunity.market.market_id
 
@@ -114,9 +111,7 @@ class TestPaperTrader:
 
         assert trader._trade_count == initial_count + 1
 
-    def test_get_performance_summary_initial_state(
-        self, trader: PaperTrader
-    ) -> None:
+    def test_get_performance_summary_initial_state(self, trader: PaperTrader) -> None:
         """Test performance summary at initialization."""
         summary = trader.get_performance_summary()
 

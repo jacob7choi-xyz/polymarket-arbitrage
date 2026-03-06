@@ -23,9 +23,8 @@ Interview Point - Postel's Law:
 
 from typing import Any
 
-from ..domain.exceptions import InvalidTokenDataError
 from ..monitoring.logging import get_logger
-from .response_models import MarketResponse, TokenResponse
+from .response_models import MarketResponse
 
 logger = get_logger(__name__)
 
@@ -111,7 +110,9 @@ class ResponseParser:
                 identifier=identifier,
                 response_type=type(response_data).__name__,
                 has_tokens="tokens" in response_data if isinstance(response_data, dict) else False,
-                has_markets="markets" in response_data if isinstance(response_data, dict) else False,
+                has_markets="markets" in response_data
+                if isinstance(response_data, dict)
+                else False,
                 is_list=isinstance(response_data, list),
                 list_length=len(response_data) if isinstance(response_data, list) else 0,
             )
@@ -169,11 +170,7 @@ class ResponseParser:
         for token in tokens:
             # Extract token ID (handle various key names)
             # Try: tokenId, token_id, id
-            token_id = (
-                token.get("tokenId")
-                or token.get("token_id")
-                or token.get("id")
-            )
+            token_id = token.get("tokenId") or token.get("token_id") or token.get("id")
 
             if not token_id:
                 logger.debug(
@@ -363,7 +360,6 @@ if __name__ == "__main__":
 
     # Example 5: Parse to MarketResponse
     print("\n=== Example 5: Full market parsing ===")
-    from datetime import datetime
 
     response5 = {
         "id": "0xfullmarket",

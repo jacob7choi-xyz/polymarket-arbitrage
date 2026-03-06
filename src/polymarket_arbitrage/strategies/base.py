@@ -187,9 +187,7 @@ if __name__ == "__main__":
     class SimpleArbitrageStrategy(ArbitrageStrategy):
         """Example strategy implementation."""
 
-        async def detect_opportunities(
-            self, markets: list[Market]
-        ) -> list[ArbitrageOpportunity]:
+        async def detect_opportunities(self, markets: list[Market]) -> list[ArbitrageOpportunity]:
             """Detect all markets with profit > 1%."""
             from datetime import datetime
 

@@ -17,9 +17,8 @@ Interview Point - Strategy Testing:
 from decimal import Decimal
 
 import pytest
-
-from src.domain.models import Market
-from src.strategies.price_discrepancy import PriceDiscrepancyStrategy
+from polymarket_arbitrage.domain.models import Market
+from polymarket_arbitrage.strategies.price_discrepancy import PriceDiscrepancyStrategy
 
 
 class TestPriceDiscrepancyStrategy:
@@ -78,9 +77,9 @@ class TestPriceDiscrepancyStrategy:
         self, strategy: PriceDiscrepancyStrategy
     ) -> None:
         """Test opportunities sorted by quality score."""
-        from datetime import datetime
+        from datetime import datetime, timedelta
 
-        from src.domain.models import Token
+        from polymarket_arbitrage.domain.models import Token
 
         # Create two arbitrage opportunities with different profits
         market1 = Market(
@@ -91,7 +90,7 @@ class TestPriceDiscrepancyStrategy:
             no_token=Token(token_id="0xno1", outcome="No", price=Decimal("0.45")),
             volume=Decimal("50000"),
             liquidity=Decimal("10000"),
-            end_date=datetime(2025, 12, 31),
+            end_date=datetime.now() + timedelta(days=365),
             active=True,
         )  # Total: 0.90, profit: 0.10
 
@@ -103,7 +102,7 @@ class TestPriceDiscrepancyStrategy:
             no_token=Token(token_id="0xno2", outcome="No", price=Decimal("0.48")),
             volume=Decimal("50000"),
             liquidity=Decimal("10000"),
-            end_date=datetime(2025, 12, 31),
+            end_date=datetime.now() + timedelta(days=365),
             active=True,
         )  # Total: 0.96, profit: 0.04
 
@@ -146,13 +145,11 @@ class TestPriceDiscrepancyStrategy:
 
         assert position_size <= Decimal("50")
 
-    def test_position_sizing_respects_liquidity(
-        self, strategy: PriceDiscrepancyStrategy
-    ) -> None:
+    def test_position_sizing_respects_liquidity(self, strategy: PriceDiscrepancyStrategy) -> None:
         """Test position sizing respects market liquidity."""
-        from datetime import datetime
+        from datetime import datetime, timedelta
 
-        from src.domain.models import Token
+        from polymarket_arbitrage.domain.models import Token
 
         # Create market with low liquidity
         low_liq_market = Market(
@@ -163,7 +160,7 @@ class TestPriceDiscrepancyStrategy:
             no_token=Token(token_id="0xno", outcome="No", price=Decimal("0.48")),
             volume=Decimal("50000"),
             liquidity=Decimal("100"),  # Very low
-            end_date=datetime(2025, 12, 31),
+            end_date=datetime.now() + timedelta(days=365),
             active=True,
         )
 

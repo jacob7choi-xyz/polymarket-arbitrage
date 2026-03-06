@@ -123,7 +123,9 @@ class PolymarketEndpoints:
     ]
 
     @classmethod
-    def get_market_urls(cls, identifier: str, include_query: bool = True) -> list[tuple[str, dict[str, str] | None]]:
+    def get_market_urls(
+        cls, identifier: str, include_query: bool = True
+    ) -> list[tuple[str, dict[str, str] | None]]:
         """
         Generate all possible URLs for fetching market/condition.
 
@@ -230,7 +232,7 @@ if __name__ == "__main__":
     condition_urls = PolymarketEndpoints.get_condition_urls(condition_id)
 
     print(f"URLs for condition {condition_id}:")
-    for i, (url, params) in enumerate(condition_urls, 1):
+    for i, (url, _params) in enumerate(condition_urls, 1):
         print(f"  {i}. {url}")
 
     # Example 3: Markets list with filters

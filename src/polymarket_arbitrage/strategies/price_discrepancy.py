@@ -216,9 +216,7 @@ class PriceDiscrepancyStrategy(ArbitrageStrategy):
             markets_analyzed=markets_analyzed,
             markets_filtered=markets_filtered,
             opportunities_found=len(opportunities),
-            top_opportunity_score=float(
-                self._calculate_opportunity_score(opportunities[0].market)
-            )
+            top_opportunity_score=float(self._calculate_opportunity_score(opportunities[0].market))
             if opportunities
             else 0,
         )
@@ -246,8 +244,8 @@ if __name__ == "__main__":
     """
     import asyncio
     from decimal import Decimal
-    from datetime import datetime
-    from ..domain.models import Token, Market
+
+    from ..domain.models import Market, Token
 
     async def demo_strategy() -> None:
         print("=== Price Discrepancy Strategy Demo ===\n")
@@ -345,9 +343,7 @@ if __name__ == "__main__":
             print(f"  Profit/dollar: ${opp.expected_profit_per_dollar}")
             print(f"  Position size: ${opp.recommended_position_size}")
             print(f"  Expected profit: ${opp.total_expected_profit}")
-            print(
-                f"  Score: {strategy.calculate_opportunity_score(market):.2f}/100"
-            )
+            print(f"  Score: {strategy.calculate_opportunity_score(market):.2f}/100")
             print()
 
     # Run demo

@@ -18,7 +18,8 @@ Interview Point - SOLID Principles in Python:
 - Open/Closed: New implementations without modifying existing code
 """
 
-from typing import AsyncIterator, Protocol
+from collections.abc import AsyncIterator
+from typing import Protocol
 
 from .models import ArbitrageOpportunity, Market
 
@@ -98,7 +99,6 @@ class IMarketRepository(Protocol):
         - Real-world: Polymarket has 1000s of markets, don't fetch all at once
         """
         ...
-        yield  # Make this a generator
 
 
 class IArbitrageStrategy(Protocol):
@@ -263,9 +263,10 @@ if __name__ == "__main__":
 
         async def get_market(self, market_id: str) -> Market | None:
             # Return test fixture
-            from decimal import Decimal
             from datetime import datetime
-            from .models import Token, Market
+            from decimal import Decimal
+
+            from .models import Market, Token
 
             return Market(
                 market_id=market_id,
@@ -297,7 +298,7 @@ if __name__ == "__main__":
         ) -> AsyncIterator[Market]:
             # Empty stream for testing
             return
-            yield  # type: ignore
+            yield
 
     # Example 2: Using protocol in type hints
     async def process_markets(repository: IMarketRepository) -> None:
@@ -313,9 +314,7 @@ if __name__ == "__main__":
     class AlwaysArbitrageStrategy:
         """Mock strategy that always finds opportunities."""
 
-        async def detect_opportunities(
-            self, markets: list[Market]
-        ) -> list[ArbitrageOpportunity]:
+        async def detect_opportunities(self, markets: list[Market]) -> list[ArbitrageOpportunity]:
             # Return mock opportunities for testing
             return []
 

@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     # Updated summary
     summary = tracker.get_summary()
-    print(f"\nAfter closing:")
+    print("\nAfter closing:")
     print(f"Open positions: {summary['open_positions']}")
     print(f"Realized P&L: ${summary['total_realized_pnl']:.2f}")
     print(f"Unrealized P&L: ${summary['total_unrealized_pnl']:.2f}")

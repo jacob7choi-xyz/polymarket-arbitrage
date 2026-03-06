@@ -14,9 +14,8 @@ Interview Point - Why Test Parsers?
 - Regression protection (API changes)
 """
 
-import pytest
 
-from src.api.parsers import ResponseParser
+from polymarket_arbitrage.api.parsers import ResponseParser
 
 
 class TestResponseParser:
@@ -142,26 +141,18 @@ class TestResponseParser:
 
         assert result is None
 
-    def test_parse_to_market_response_success(
-        self, mock_api_market_response: dict
-    ) -> None:
+    def test_parse_to_market_response_success(self, mock_api_market_response: dict) -> None:
         """Test successful parsing to MarketResponse."""
-        result = ResponseParser.parse_to_market_response(
-            mock_api_market_response, "test_id"
-        )
+        result = ResponseParser.parse_to_market_response(mock_api_market_response, "test_id")
 
         assert result is not None
         assert result.market_id == "0xmarket123"
         assert result.question == "Will Bitcoin reach $100k in 2025?"
         assert len(result.tokens) == 2
 
-    def test_parse_to_market_response_wrapped(
-        self, mock_api_markets_list_response: dict
-    ) -> None:
+    def test_parse_to_market_response_wrapped(self, mock_api_markets_list_response: dict) -> None:
         """Test parsing wrapped markets response."""
-        result = ResponseParser.parse_to_market_response(
-            mock_api_markets_list_response, "test_id"
-        )
+        result = ResponseParser.parse_to_market_response(mock_api_markets_list_response, "test_id")
 
         assert result is not None
         assert result.market_id == "0xmarket123"

@@ -15,8 +15,9 @@ Interview Points:
 """
 
 import time
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Awaitable, Callable, TypeVar
+from typing import Any, TypeVar
 
 from prometheus_client import Counter, Gauge, Histogram, Info
 
@@ -152,7 +153,9 @@ APP_INFO.info(
 # ============================================================================
 
 
-def track_api_call(endpoint: str) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
+def track_api_call(
+    endpoint: str,
+) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
     """
     Decorator to track API call metrics.
 
@@ -365,9 +368,7 @@ def update_circuit_breaker_state(name: str, state: str) -> None:
         "open": 2,
     }
 
-    CIRCUIT_BREAKER_STATE.labels(circuit_breaker=name).set(
-        state_map.get(state.lower(), -1)
-    )
+    CIRCUIT_BREAKER_STATE.labels(circuit_breaker=name).set(state_map.get(state.lower(), -1))
 
 
 # Example usage for documentation
