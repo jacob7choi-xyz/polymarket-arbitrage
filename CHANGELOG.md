@@ -7,7 +7,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Pre-resolution calibration curves (24h, 6h, 1h before resolution) in `research/analysis/calibration.py`
+- Category-level calibration plot (`save_category_calibration_plot`) with per-category curves and sample sizes
+- matplotlib added to `[[tool.mypy.overrides]]` ignore list for missing imports
+
 ### Changed
+- `build_calibration_table` return type narrowed from `dict[str, object]` to `dict[str, str | float | int | None]`
+- Pre-commit mypy hook now runs via `uv run mypy` (local hook) instead of `mirrors-mypy`, so it uses the project's managed environment
 - Restructured to standard src layout (`src/polymarket_arbitrage/`)
 - Migrated from Poetry to uv for package management and builds
 - Replaced black with ruff for formatting (ruff handles both linting and formatting)

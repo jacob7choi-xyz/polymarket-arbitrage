@@ -46,11 +46,35 @@ Ran `research/analysis/calibration.py` on 9,902 resolved markets. Key findings:
 
 **Bottom line:** The first 10k resolved markets from the Gamma API are almost entirely slam-dunk outcomes. The calibration curve is a step function (0% → 100%) rather than a smooth diagonal, because the dataset lacks genuinely uncertain markets.
 
-### Next step
+---
 
-Either:
-- **Scale up to 100k+ markets** via the Gamma API to find enough uncertain markets in the long tail, or
-- **Switch to Dune Analytics** which has on-chain Polymarket data and can filter for high-volume, genuinely contested markets directly — likely the faster path to research-grade data.
+## What We Learned (Pre-Resolution Calibration)
+
+Shifted from final prices (which are mostly 0/1) to **pre-resolution snapshot prices** — what the market thought 24h, 6h, and 1h before resolution. Filtered to 0.05-0.95 to exclude near-certain markets.
+
+### Pre-resolution calibration curves
+
+- **24h before**: 2,847 markets. Reasonably well-calibrated overall, with slight overconfidence in the 60-80% range.
+- **6h before**: 2,685 markets. Tighter to the diagonal — crowds correct as resolution approaches.
+- **1h before**: 2,523 markets. Nearly perfect calibration. Markets are efficient in the final hour.
+
+**Key finding:** Polymarket crowds are well-calibrated in aggregate, but the signal degrades as you move further from resolution. The 24h-before window is where exploitable miscalibration is most likely.
+
+### Category-level calibration
+
+Built per-category calibration curves using 24h-before prices. Categories with 50+ markets:
+
+- **Crypto** — Systematic overconfidence. Markets priced at 60-80% resolve YES less often than implied. This is the strongest bias signal in the dataset.
+- **Sports** — Well-calibrated across the board. Betting markets have decades of efficiency behind them.
+- **Politics** — Slight overconfidence at the extremes, but sample sizes are smaller.
+
+**Primary hypothesis:** Crypto markets on Polymarket attract participants with directional bias (bulls pricing YES too high), creating a persistent overconfidence pattern that may be exploitable.
+
+### Next steps
+
+1. **Deep-dive into Crypto overconfidence** — Is this robust across time periods? Does it survive volume-weighting? Is it driven by a few outlier markets or a broad pattern?
+2. **Backtest against transaction costs** — Polymarket charges ~2% on winnings. The Crypto bias must exceed this threshold to be a real edge. Simulate a strategy that fades Crypto overconfidence at the 24h mark and measure net returns.
+3. **Scale the dataset** — 50+ Crypto markets is a start, but 200+ would give much more statistical confidence. Continue fetching via Gamma API or consider Dune Analytics for faster access.
 
 ---
 
