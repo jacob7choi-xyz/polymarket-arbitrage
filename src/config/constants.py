@@ -30,12 +30,12 @@ MIN_PROFIT_THRESHOLD = Decimal("0.01")
 # ============================================================================
 
 # Minimum market liquidity to avoid execution risk
-# If liquidity < $1000, orders may move prices significantly
-MIN_LIQUIDITY = Decimal("1000")
+# If liquidity < $500, orders may move prices significantly
+MIN_LIQUIDITY = Decimal("500")
 
 # Minimum 24h volume indicates market is active and prices are reliable
 # Low volume markets may have stale prices
-MIN_VOLUME = Decimal("10000")
+MIN_VOLUME = Decimal("1000")
 
 # Maximum position size as percentage of market liquidity
 # Taking >1% of liquidity creates price impact (slippage)

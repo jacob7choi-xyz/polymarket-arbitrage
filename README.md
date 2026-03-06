@@ -22,7 +22,7 @@ This is a **learning project** focused on demonstrating production-grade softwar
 - ✅ **Full observability** (structured logging, Prometheus metrics)
 - ✅ **Interview-ready** (inline comments explaining architectural decisions)
 
-**This is NOT** a production trading system—it's a portfolio piece showcasing engineering excellence.
+**This is NOT** a production trading system.
 
 ---
 

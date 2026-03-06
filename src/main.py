@@ -15,17 +15,19 @@ Interview Points:
 """
 
 import asyncio
+import json
 import signal
 import sys
 import uuid
-from typing import NoReturn
+from decimal import Decimal
+from typing import Any, NoReturn
 
 from .api.client import PolymarketClient
 from .api.endpoints import PolymarketEndpoints
 from .api.parsers import ResponseParser
 from .api.resilience import CircuitBreaker, RateLimiter
 from .config.settings import Settings, get_settings
-from .domain.models import Market
+from .domain.models import Market, Token
 from .execution.paper_trader import PaperTrader
 from .execution.position_tracker import PositionTracker
 from .monitoring.logging import bind_context, clear_context, configure_logging, get_logger
@@ -175,18 +177,13 @@ class Application:
 
     async def _fetch_markets(self) -> list[Market]:
         """
-        Fetch markets from Polymarket API.
+        Fetch active markets from Polymarket Gamma API.
 
-        Uses multi-endpoint fallback strategy from reference code.
-        Converts API responses to domain models.
+        Fetches paginated market data, filters for binary YES/NO markets
+        with meaningful volume, and converts to domain models.
 
         Returns:
             List of Market domain objects
-
-        Interview Point - API Integration:
-        - Multi-endpoint fallback (resilience)
-        - Flexible parsing (handle format variations)
-        - Domain model conversion (separation of concerns)
         """
         markets: list[Market] = []
 
@@ -194,12 +191,140 @@ class Application:
             logger.error("api_client_not_initialized")
             return markets
 
-        # For demo/MVP: Fetch sample market
-        # In production: Fetch markets list, paginate, filter by category
-        # TODO: Implement full market fetching with pagination
+        try:
+            # Fetch markets with pagination
+            # Gamma API returns a flat list, supports limit/offset
+            all_raw_markets: list[dict[str, Any]] = []
+            offset = 0
+            limit = 100  # Max per request
 
-        logger.info("market_fetching_skipped_mvp")
+            while True:
+                params: dict[str, Any] = {
+                    "active": "true",
+                    "closed": "false",
+                    "limit": str(limit),
+                    "offset": str(offset),
+                }
+
+                data = await self.api_client.get_json("/markets", params=params)
+
+                # API returns a flat list
+                if isinstance(data, list):
+                    batch = data
+                elif isinstance(data, dict) and "markets" in data:
+                    batch = data["markets"]
+                else:
+                    logger.warning("unexpected_response_format", type=type(data).__name__)
+                    break
+
+                if not batch:
+                    break
+
+                all_raw_markets.extend(batch)
+                logger.debug("markets_batch_fetched", batch_size=len(batch), total=len(all_raw_markets))
+
+                # Stop if we got fewer than the limit (last page)
+                if len(batch) < limit:
+                    break
+
+                offset += limit
+
+            logger.info("raw_markets_fetched", total=len(all_raw_markets))
+
+            # Convert to domain models, filtering for valid binary markets
+            for raw in all_raw_markets:
+                market = self._parse_gamma_market(raw)
+                if market is not None:
+                    markets.append(market)
+
+            logger.info("markets_parsed", valid=len(markets), total=len(all_raw_markets))
+
+        except Exception as e:
+            logger.error("market_fetch_failed", error=str(e), error_type=type(e).__name__)
+
         return markets
+
+    def _parse_gamma_market(self, raw: dict[str, Any]) -> Market | None:
+        """
+        Parse a raw Gamma API market dict into a domain Market.
+
+        The Gamma API returns a flat structure with parallel arrays:
+        - outcomes: ["Yes", "No"]
+        - outcomePrices: ["0.48", "0.52"]
+        - clobTokenIds: ["<yes_token_id>", "<no_token_id>"]
+
+        Returns None for markets that are not valid binary markets
+        or don't meet volume/liquidity thresholds.
+        """
+        try:
+            # Must be a binary market with outcomes and prices
+            # Gamma API returns these as JSON strings, not lists
+            outcomes_raw = raw.get("outcomes", "[]")
+            prices_raw = raw.get("outcomePrices", "[]")
+            token_ids_raw = raw.get("clobTokenIds", "[]")
+
+            outcomes = json.loads(outcomes_raw) if isinstance(outcomes_raw, str) else outcomes_raw
+            prices = json.loads(prices_raw) if isinstance(prices_raw, str) else prices_raw
+            token_ids = json.loads(token_ids_raw) if isinstance(token_ids_raw, str) else token_ids_raw
+
+            if not outcomes or not prices or len(outcomes) != 2 or len(prices) != 2:
+                return None
+
+            # Must have token IDs for order book trading
+            if not token_ids or len(token_ids) != 2:
+                return None
+
+            # Must be accepting orders
+            if not raw.get("acceptingOrders", False):
+                return None
+
+            # Parse volume (use 24hr volume for activity check)
+            volume_24hr = Decimal(str(raw.get("volume24hr", 0) or 0))
+            liquidity = Decimal(str(raw.get("liquidity", 0) or 0))
+
+            # Filter: skip low-volume/low-liquidity markets
+            if volume_24hr < self.settings.min_volume_usd:
+                return None
+            if liquidity < self.settings.min_liquidity_usd:
+                return None
+
+            # Map outcomes to YES/NO tokens
+            # outcomes[0] corresponds to prices[0] and token_ids[0]
+            yes_token = None
+            no_token = None
+
+            for i, outcome in enumerate(outcomes):
+                outcome_upper = outcome.strip().upper()
+                price = Decimal(str(prices[i]))
+                tid = str(token_ids[i])
+
+                if outcome_upper in ("YES", "Y"):
+                    yes_token = Token(token_id=tid, outcome="Yes", price=price)
+                elif outcome_upper in ("NO", "N"):
+                    no_token = Token(token_id=tid, outcome="No", price=price)
+
+            if not yes_token or not no_token:
+                return None
+
+            return Market(
+                market_id=str(raw.get("id", "")),
+                condition_id=raw.get("conditionId", ""),
+                question=raw.get("question", ""),
+                yes_token=yes_token,
+                no_token=no_token,
+                volume=volume_24hr,
+                liquidity=liquidity,
+                end_date=raw.get("endDate", "2099-01-01T00:00:00Z"),
+                active=raw.get("active", True),
+            )
+
+        except (ValueError, KeyError, IndexError) as e:
+            logger.debug(
+                "market_parse_skipped",
+                market_id=raw.get("id", "unknown"),
+                error=str(e),
+            )
+            return None
 
     @track_detection_cycle
     async def run_detection_cycle(self) -> None:
