@@ -170,7 +170,7 @@ Buy both outcomes:
 
 ```bash
 # Clone repository
-cd polymarket-arbitrage-detector
+cd polymarket-arbitrage
 
 # Install dependencies
 poetry install
@@ -232,7 +232,7 @@ poetry run pytest -v
 ## 📁 Project Structure
 
 ```
-polymarket-arbitrage-detector/
+polymarket-arbitrage/
 ├── src/
 │   ├── api/                    # API client layer
 │   │   ├── client.py           # Async HTTP client
