@@ -57,8 +57,11 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Linting
+.ruff_cache/
+
+# Property-based testing
+.hypothesis/
+
 # Project specific
 config/config.local.yaml
-coverage.xml
-htmlcov/
-logs/
