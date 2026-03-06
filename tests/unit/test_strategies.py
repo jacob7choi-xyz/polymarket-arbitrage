@@ -17,6 +17,7 @@ Interview Point - Strategy Testing:
 from decimal import Decimal
 
 import pytest
+
 from polymarket_arbitrage.domain.models import Market
 from polymarket_arbitrage.strategies.price_discrepancy import PriceDiscrepancyStrategy
 

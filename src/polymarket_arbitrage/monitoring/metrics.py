@@ -14,9 +14,9 @@ Interview Points:
 - Histogram vs Counter vs Gauge: Different metric types for different use cases
 """
 
-import time
 from collections.abc import Awaitable, Callable
 from functools import wraps
+import time
 from typing import Any, TypeVar
 
 from prometheus_client import Counter, Gauge, Histogram, Info

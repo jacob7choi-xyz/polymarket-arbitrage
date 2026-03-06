@@ -1,36 +1,32 @@
 # Multi-stage Dockerfile for production deployment
-# Interview Point - Why Multi-stage?
-# - Smaller final image (no build dependencies)
-# - Security: Fewer attack vectors
-# - Build cache: Faster rebuilds
+#
+# Why multi-stage?
+# - Smaller final image (no build tools)
+# - Security: fewer attack vectors
+# - Build cache: faster rebuilds
 
 # Stage 1: Builder
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+# Install uv for fast dependency resolution
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Install poetry
-RUN pip install --no-cache-dir poetry==1.7.1
+# Copy dependency files first (cache layer)
+COPY pyproject.toml uv.lock ./
 
-# Copy dependency files
-COPY pyproject.toml poetry.lock ./
+# Install production dependencies only
+RUN uv sync --no-dev --frozen --no-install-project
 
-# Install dependencies
-# --no-root: Don't install the project itself yet
-# --no-dev: Don't install dev dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --no-root --without dev
+# Copy source and install the project itself
+COPY src/ ./src/
+RUN uv sync --no-dev --frozen
 
 # Stage 2: Runtime
 FROM python:3.11-slim
 
-# Create non-root user for security
-# Interview Point: Never run containers as root
+# Create non-root user (never run containers as root)
 RUN useradd -m -u 1000 arbitrage && \
     mkdir -p /app /app/logs && \
     chown -R arbitrage:arbitrage /app
@@ -38,28 +34,25 @@ RUN useradd -m -u 1000 arbitrage && \
 WORKDIR /app
 USER arbitrage
 
-# Copy installed dependencies from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy the virtual environment from builder
+COPY --from=builder --chown=arbitrage:arbitrage /app/.venv /app/.venv
 
-# Copy application code
+# Copy application code and config
 COPY --chown=arbitrage:arbitrage src/ ./src/
 COPY --chown=arbitrage:arbitrage config/ ./config/
 
 # Environment variables
-ENV PYTHONUNBUFFERED=1 \
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     ARBITRAGE_JSON_LOGS=true
 
 # Expose metrics port
 EXPOSE 9090
 
-# Health check
-# Interview Point: Health checks for container orchestration
-# - Kubernetes uses this for liveness/readiness probes
-# - Docker can restart unhealthy containers
+# Health check for container orchestration (Kubernetes liveness/readiness)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys; sys.exit(0)"
+    CMD python -c "import polymarket_arbitrage; import sys; sys.exit(0)"
 
 # Run application
-CMD ["python", "-m", "src.main"]
+CMD ["python", "-m", "polymarket_arbitrage.main"]

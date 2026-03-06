@@ -1,54 +1,54 @@
 # Polymarket Arbitrage Detector
 
 > **Production-grade arbitrage detection system for Polymarket prediction markets**
->
-> 
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Linting: ruff](https://img.shields.io/badge/linting-ruff-261230.svg)](https://github.com/astral-sh/ruff)
 [![Type checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](http://mypy-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## 🎯 Project Goals
+## Project Goals
 
 This is a **learning project** focused on demonstrating production-grade software engineering:
 
-- ✅ **Paper trading only** (no real money)
-- ✅ **Production patterns** (circuit breaker, retry, rate limiting)
-- ✅ **Clean architecture** (separation of concerns, dependency injection)
-- ✅ **Comprehensive testing** (unit, integration, property-based)
-- ✅ **Full observability** (structured logging, Prometheus metrics)
-- ✅ **Interview-ready** (inline comments explaining architectural decisions)
+- **Paper trading only** (no real money)
+- **Production patterns** (circuit breaker, retry, rate limiting)
+- **Clean architecture** (separation of concerns, dependency injection)
+- **Comprehensive testing** (unit, integration, property-based)
+- **Full observability** (structured logging, Prometheus metrics)
+- **Interview-ready** (inline comments explaining architectural decisions)
 
-**This is NOT** a production trading system.
-
----
-
-## 📚 Table of Contents
-
-- [System Architecture](#-system-architecture)
-- [Key Features](#-key-features)
-- [Technology Stack](#-technology-stack)
-- [Quick Start](#-quick-start)
-- [Project Structure](#-project-structure)
-- [Design Decisions](#-design-decisions)
-- [Testing](#-testing)
-- [Monitoring](#-monitoring)
-- [Development](#-development)
+**This is NOT a production trading system.**
 
 ---
 
-## 🏗️ System Architecture
+## Table of Contents
+
+- [System Architecture](#system-architecture)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [Design Decisions](#design-decisions)
+- [Testing](#testing)
+- [Monitoring](#monitoring)
+- [Development](#development)
+- [Contributing](#contributing)
+
+---
+
+## System Architecture
 
 ```
 ┌────────────────────────────────────────────────────────┐
 │                 Main Orchestrator                       │
-│  • Dependency injection (composition root)              │
-│  • Lifecycle management (startup → run → shutdown)      │
-│  • Detection cycles (fetch → detect → execute)          │
-│  • Signal handling (graceful shutdown)                  │
+│  - Dependency injection (composition root)              │
+│  - Lifecycle management (startup -> run -> shutdown)    │
+│  - Detection cycles (fetch -> detect -> execute)        │
+│  - Signal handling (graceful shutdown)                  │
 └────────┬───────────────────────────────────────────────┘
          │
     ┌────┴─────────┬─────────────┬──────────────┐
@@ -57,10 +57,10 @@ This is a **learning project** focused on demonstrating production-grade softwar
 │ API      │  │Strategy │  │ Execution  │  │ Monitoring │
 │ Layer    │  │ Engine  │  │   Layer    │  │   Layer    │
 │          │  │         │  │            │  │            │
-│•HTTP/2   │  │•Detect  │  │•Paper Trade│  │•Prometheus │
-│•Circuit  │  │•Filter  │  │•Track P&L  │  │•Structlog  │
-│•Retry    │  │•Score   │  │•Capital    │  │•Health     │
-│•Rate Lim │  │         │  │            │  │            │
+│ HTTP/2   │  │ Detect  │  │ Paper Trade│  │ Prometheus │
+│ Circuit  │  │ Filter  │  │ Track P&L  │  │ Structlog  │
+│ Retry    │  │ Score   │  │ Capital    │  │ Health     │
+│ Rate Lim │  │         │  │            │  │            │
 └──────────┘  └─────────┘  └────────────┘  └────────────┘
 ```
 
@@ -69,10 +69,10 @@ This is a **learning project** focused on demonstrating production-grade softwar
 **Opportunity**: When YES price + NO price < $0.99
 
 **Example**:
-```python
+```
 YES token: $0.48 (48% implied probability)
 NO token:  $0.48 (48% implied probability)
-Total:     $0.96 < $0.99  ← Arbitrage exists!
+Total:     $0.96 < $0.99  <- Arbitrage exists!
 
 Buy both outcomes:
 - Cost: $0.96
@@ -87,41 +87,40 @@ Buy both outcomes:
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ### Production-Grade Patterns
 
 1. **Circuit Breaker Pattern**
    - Prevents cascading failures when API degrades
-   - States: CLOSED → OPEN → HALF_OPEN
+   - States: CLOSED -> OPEN -> HALF_OPEN
    - Auto-recovery testing
-   - See: `src/api/resilience.py`
+   - See: `src/polymarket_arbitrage/api/resilience.py`
 
 2. **Exponential Backoff with Jitter**
    - Graceful retry strategy
    - Prevents thundering herd problem
    - AWS best practice implementation
-   - See: `src/api/resilience.py`
+   - See: `src/polymarket_arbitrage/api/resilience.py`
 
 3. **Token Bucket Rate Limiter**
    - Smooth traffic control (no boundary effects)
    - Sustainable rate + burst allowance
    - Industry standard (AWS, Stripe, GitHub use this)
-   - See: `src/api/resilience.py`
+   - See: `src/polymarket_arbitrage/api/resilience.py`
 
 4. **Multi-Endpoint Fallback**
    - Tries multiple API patterns
    - Graceful degradation
    - Mirrors real-world API integration
-   - See: `src/api/endpoints.py`
+   - See: `src/polymarket_arbitrage/api/endpoints.py`
 
 ### Code Quality
 
-- **Type Safety**: Full type hints, mypy validation
+- **Type Safety**: Full type hints, strict mypy validation
 - **Immutability**: Frozen Pydantic models (thread-safe)
 - **Decimal Math**: No float precision errors for financial calculations
 - **SOLID Principles**: Dependency injection, single responsibility
-- **DRY**: No code duplication
 - **Rich Domain Models**: Business logic in models, not services
 
 ### Observability
@@ -133,12 +132,12 @@ Buy both outcomes:
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Core
 - **Python 3.11+**: Modern async/await, type hints
 - **httpx**: Async HTTP client with HTTP/2, connection pooling
-- **Pydantic**: Data validation, settings management
+- **Pydantic v2**: Data validation, settings management
 - **structlog**: Structured logging
 
 ### Monitoring
@@ -146,61 +145,59 @@ Buy both outcomes:
 - **Grafana**: Dashboards and visualization
 
 ### Development
-- **pytest**: Testing framework
+- **uv**: Package management and builds
+- **pytest**: Testing framework with async support
 - **hypothesis**: Property-based testing
-- **mypy**: Static type checking
-- **black**: Code formatting
-- **ruff**: Fast linting
+- **mypy**: Strict static type checking
+- **ruff**: Linting and formatting
 
 ### Infrastructure
-- **Docker**: Containerization
-- **docker-compose**: Local orchestration
+- **Docker**: Multi-stage production build
+- **docker-compose**: Local orchestration (app + Prometheus + Grafana)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (package manager)
 - Docker & Docker Compose (optional, for full stack)
-- Poetry (for dependency management)
 
 ### Installation
 
 ```bash
 # Clone repository
+git clone https://github.com/jacob7choi-xyz/polymarket-arbitrage.git
 cd polymarket-arbitrage
 
-# Install dependencies
-poetry install
+# Install all dependencies (including dev)
+uv sync --group dev
 
 # Copy environment template
 cp .env.example .env
-
-# Edit configuration
-vim .env  # or use your preferred editor
 ```
 
 ### Running Locally
 
 ```bash
-# Run with Python
-poetry run python -m src.main
+# Run the detector
+uv run python -m polymarket_arbitrage.main
 
-# Or activate virtual environment
-poetry shell
-python -m src.main
+# Or activate the virtual environment first
+source .venv/bin/activate
+python -m polymarket_arbitrage.main
 ```
 
 ### Running with Docker
 
 ```bash
 # Build and start entire stack (app + Prometheus + Grafana)
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f arbitrage-detector
+docker compose logs -f arbitrage-detector
 
 # Access dashboards
 # - Grafana: http://localhost:3000 (admin/admin)
@@ -208,92 +205,115 @@ docker-compose logs -f arbitrage-detector
 # - Metrics: http://localhost:9090/metrics
 
 # Stop stack
-docker-compose down
+docker compose down
 ```
 
 ### Running Tests
 
 ```bash
 # Run all tests
-poetry run pytest
-
-# Run with coverage
-poetry run pytest --cov=src --cov-report=html
+uv run pytest
 
 # Run specific test file
-poetry run pytest tests/unit/test_strategies.py
+uv run pytest tests/unit/test_strategies.py
 
 # Run with verbose output
-poetry run pytest -v
+uv run pytest -v
+
+# Stop on first failure
+uv run pytest -x
 ```
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 polymarket-arbitrage/
 ├── src/
-│   ├── api/                    # API client layer
-│   │   ├── client.py           # Async HTTP client
-│   │   ├── resilience.py       # Circuit breaker, retry, rate limiter
-│   │   ├── endpoints.py        # Multi-endpoint fallback
-│   │   ├── parsers.py          # Flexible response parsing
-│   │   └── response_models.py  # Pydantic API models
-│   │
-│   ├── config/                 # Configuration
-│   │   ├── settings.py         # Pydantic BaseSettings
-│   │   └── constants.py        # Domain constants
-│   │
-│   ├── domain/                 # Domain layer
-│   │   ├── models.py           # Rich domain models
-│   │   ├── exceptions.py       # Custom exceptions
-│   │   └── protocols.py        # Interface definitions (PEP 544)
-│   │
-│   ├── strategies/             # Arbitrage strategies
-│   │   ├── base.py             # Base strategy with shared logic
-│   │   └── price_discrepancy.py # YES+NO < 0.99 detector
-│   │
-│   ├── execution/              # Trade execution
-│   │   ├── paper_trader.py     # Paper trading executor
-│   │   └── position_tracker.py # Position & P&L tracking
-│   │
-│   ├── monitoring/             # Observability
-│   │   ├── logging.py          # Structured logging (structlog)
-│   │   └── metrics.py          # Prometheus metrics
-│   │
-│   └── main.py                 # Main orchestrator
+│   └── polymarket_arbitrage/       # Main package
+│       ├── __init__.py
+│       ├── main.py                 # Orchestrator & composition root
+│       ├── api/                    # API client layer
+│       │   ├── client.py           # Async HTTP client (httpx)
+│       │   ├── resilience.py       # Circuit breaker, retry, rate limiter
+│       │   ├── endpoints.py        # Multi-endpoint fallback
+│       │   ├── parsers.py          # Flexible response parsing
+│       │   └── response_models.py  # Pydantic API response models
+│       ├── config/                 # Configuration
+│       │   ├── settings.py         # Pydantic BaseSettings
+│       │   └── constants.py        # Domain constants
+│       ├── domain/                 # Domain layer (no external deps)
+│       │   ├── models.py           # Rich domain models (frozen)
+│       │   ├── exceptions.py       # Custom exception hierarchy
+│       │   └── protocols.py        # Interface definitions (PEP 544)
+│       ├── strategies/             # Arbitrage detection strategies
+│       │   ├── base.py             # Base strategy with shared logic
+│       │   └── price_discrepancy.py # YES+NO < 0.99 detector
+│       ├── execution/              # Trade execution
+│       │   ├── paper_trader.py     # Paper trading executor
+│       │   └── position_tracker.py # Position & P&L tracking
+│       └── monitoring/             # Observability
+│           ├── logging.py          # Structured logging (structlog)
+│           └── metrics.py          # Prometheus metrics
 │
-├── tests/                      # Test suite
-│   ├── conftest.py             # Shared fixtures
-│   ├── unit/                   # Unit tests
+├── tests/                          # Test suite
+│   ├── conftest.py                 # Shared fixtures
+│   ├── unit/                       # Unit tests
 │   │   ├── test_domain_models.py
 │   │   ├── test_parsers.py
 │   │   ├── test_strategies.py
 │   │   └── test_paper_trader.py
-│   ├── integration/            # Integration tests
-│   └── property/               # Property-based tests
+│   ├── integration/                # Integration tests (future)
+│   └── property/                   # Property-based tests (future)
 │
-├── config/                     # Configuration files
-│   ├── config.yaml             # Default configuration
-│   └── config.dev.yaml         # Development overrides
+├── config/                         # Runtime configuration files
+│   ├── config.yaml                 # Default configuration
+│   └── config.dev.yaml             # Development overrides
 │
-├── monitoring/                 # Monitoring configuration
-│   └── prometheus.yml          # Prometheus config
+├── monitoring/                     # Monitoring configuration
+│   └── prometheus.yml              # Prometheus scrape config
 │
-├── Dockerfile                  # Multi-stage production build
-├── docker-compose.yml          # Local development stack
-├── pyproject.toml              # Dependencies & tool config
-└── README.md                   # This file
+├── .env.example                    # Environment variable template
+├── .pre-commit-config.yaml         # Pre-commit hook config
+├── Dockerfile                      # Multi-stage production build
+├── docker-compose.yml              # Local development stack
+├── pyproject.toml                  # Dependencies, build, & tool config
+└── uv.lock                        # Locked dependency versions
 ```
 
 ---
 
-## 🧠 Design Decisions
+## Configuration
+
+The system uses a layered configuration approach:
+
+1. **Defaults** in `config/constants.py` and Pydantic field defaults
+2. **YAML files** in `config/` for structured settings
+3. **Environment variables** (highest priority) for deployment overrides
+
+### Environment Variables
+
+All environment variables are prefixed with `ARBITRAGE_`. See `.env.example` for the complete list.
+
+| Variable | Default | Description |
+|---|---|---|
+| `ARBITRAGE_POLYMARKET_API_URL` | `https://gamma-api.polymarket.com` | API base URL |
+| `ARBITRAGE_ARBITRAGE_THRESHOLD` | `0.99` | Max YES+NO sum to trigger |
+| `ARBITRAGE_MIN_LIQUIDITY_USD` | `1000` | Minimum market liquidity |
+| `ARBITRAGE_INITIAL_CAPITAL_USD` | `10000` | Starting paper capital |
+| `ARBITRAGE_MAX_POSITION_SIZE_USD` | `100` | Max single position size |
+| `ARBITRAGE_LOG_LEVEL` | `INFO` | Log verbosity |
+| `ARBITRAGE_JSON_LOGS` | `true` | JSON output (prod) vs console (dev) |
+| `ARBITRAGE_POLL_INTERVAL_SECONDS` | `60` | Market data polling interval |
+
+---
+
+## Design Decisions
 
 ### Architecture Patterns
 
-#### 1. **Protocols vs Abstract Base Classes**
+#### 1. Protocols vs Abstract Base Classes
 
 **Decision**: Use `typing.Protocol` (PEP 544) for interfaces
 
@@ -307,17 +327,15 @@ polymarket-arbitrage/
 - When you have shared implementation to inherit
 - Example: `ArbitrageStrategy` base class has common filtering logic
 
-**Code**: See `src/domain/protocols.py`
+**Code**: See `src/polymarket_arbitrage/domain/protocols.py`
 
----
-
-#### 2. **Separate API Models from Domain Models**
+#### 2. Separate API Models from Domain Models
 
 **Decision**: `api/response_models.py` vs `domain/models.py`
 
 **Why?**
 - **Decoupling**: API changes don't break domain logic
-- **Multiple sources**: Can integrate multiple APIs → single domain model
+- **Multiple sources**: Can integrate multiple APIs into a single domain model
 - **Validation layers**:
   - API models: Validate structure (Pydantic)
   - Domain models: Validate business rules
@@ -326,11 +344,7 @@ polymarket-arbitrage/
 - API returns `tokenId` (camelCase) or `token_id` (snake_case)
 - Domain model uses consistent `token_id`
 
-**Code**: Compare `src/api/response_models.py` and `src/domain/models.py`
-
----
-
-#### 3. **Decimal for Financial Math**
+#### 3. Decimal for Financial Math
 
 **Decision**: Use `Decimal` for all prices and money
 
@@ -345,14 +359,9 @@ polymarket-arbitrage/
 Decimal("0.3")  # Correct!
 ```
 
-**In arbitrage**: 0.001 difference = profit or loss
-**Regulatory**: Financial systems require exact decimal arithmetic
+In arbitrage, 0.001 difference = profit or loss. Financial systems require exact decimal arithmetic.
 
-**Code**: All domain models use `Decimal`
-
----
-
-#### 4. **Frozen Pydantic Models**
+#### 4. Frozen Pydantic Models
 
 **Decision**: All domain models have `frozen=True`
 
@@ -362,58 +371,46 @@ Decimal("0.3")  # Correct!
 - **Hashable**: Can use as dict keys or in sets
 - **Functional programming**: Easier to reason about (no side effects)
 
-**Code**: See `src/domain/models.py`
-
----
-
-#### 5. **Dependency Injection (Composition Root)**
+#### 5. Dependency Injection (Composition Root)
 
 **Decision**: Build entire dependency graph in `main.py`
 
 **Why?**
 - **Testability**: Easy to inject mocks
-- **Flexibility**: Swap implementations (paper trader → live trader)
+- **Flexibility**: Swap implementations (paper trader -> live trader)
 - **No hidden dependencies**: All dependencies explicit
 - **SOLID**: Dependency Inversion Principle
 
-**Pattern**: Manual DI (no framework), simple and explicit
-
-**Code**: See `src/main.py` `Application.__init__()`
+Pattern: Manual DI (no framework), simple and explicit.
 
 ---
 
 ### Resilience Patterns
 
-#### 1. **Circuit Breaker**
+#### Circuit Breaker
 
-**Problem**: API degraded → all requests fail → queue builds up → memory exhaustion
+**Problem**: API degraded -> all requests fail -> queue builds up -> memory exhaustion
 
 **Solution**: Circuit breaker pattern
-- After N failures → OPEN (reject requests immediately)
-- After timeout → HALF_OPEN (test recovery)
-- On success → CLOSED (resume normal operation)
+- After N failures -> OPEN (reject requests immediately)
+- After timeout -> HALF_OPEN (test recovery)
+- On success -> CLOSED (resume normal operation)
 
 **Alternative Considered**: Simple retry with backoff
 **Rejected**: Doesn't prevent request buildup during prolonged outages
 
-**Code**: `src/api/resilience.py` `CircuitBreaker`
+**Code**: `src/polymarket_arbitrage/api/resilience.py`
 
----
+#### Exponential Backoff with Jitter
 
-#### 2. **Exponential Backoff with Jitter**
-
-**Problem**: 1000 clients hit rate limit → all retry at same time → still rate limited!
+**Problem**: 1000 clients hit rate limit -> all retry at same time -> still rate limited
 
 **Solution**: Exponential backoff + jitter
 - Delay: `base * (2 ^ attempt) * random(0.5, 1.5)`
 - Spreads retries out over time
 - AWS best practice (full jitter)
 
-**Code**: `src/api/resilience.py` `retry_with_backoff()`
-
----
-
-#### 3. **Token Bucket Rate Limiting**
+#### Token Bucket Rate Limiting
 
 **Problem**: Fixed window rate limiting has boundary effects
 ```
@@ -429,11 +426,9 @@ Fixed window (60 req/min):
 - No boundary effects
 - Industry standard (AWS, Stripe, GitHub)
 
-**Code**: `src/api/resilience.py` `RateLimiter`
-
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Test Coverage
 
@@ -444,41 +439,40 @@ Fixed window (60 req/min):
 ### Running Tests
 
 ```bash
-# All tests
-pytest
+# All tests with coverage
+uv run pytest
 
 # Specific module
-pytest tests/unit/test_strategies.py
+uv run pytest tests/unit/test_strategies.py
 
-# With coverage
-pytest --cov=src --cov-report=html
-open htmlcov/index.html
-
-# Verbose
-pytest -v
+# Verbose output
+uv run pytest -v
 
 # Stop on first failure
-pytest -x
+uv run pytest -x
+
+# Open coverage report
+open htmlcov/index.html
 ```
+
+Coverage is configured in `pyproject.toml` and runs automatically with every `pytest` invocation, reporting to terminal, HTML, and XML.
 
 ### Test Philosophy
 
 **What to Test**:
-- ✅ Business logic (arbitrage detection, profit calculation)
-- ✅ Edge cases (boundary values, empty lists)
-- ✅ Error handling (invalid data, API failures)
-- ✅ Immutability (can't modify frozen models)
+- Business logic (arbitrage detection, profit calculation)
+- Edge cases (boundary values, empty lists)
+- Error handling (invalid data, API failures)
+- Immutability (can't modify frozen models)
 
 **What NOT to Test**:
-- ❌ Third-party libraries (httpx, Pydantic)
-- ❌ Simple getters/setters
-- ❌ Configuration loading (too simple)
-
-**Code**: See `tests/` directory
+- Third-party libraries (httpx, Pydantic)
+- Simple getters/setters
+- Configuration loading (too simple)
 
 ---
 
-## 📊 Monitoring
+## Monitoring
 
 ### Prometheus Metrics
 
@@ -513,9 +507,8 @@ rate(arbitrage_opportunities_detected_total[1h])
 
 ### Structured Logging
 
-**Format**: JSON (machine-parseable)
+**Format**: JSON (machine-parseable in production)
 
-**Example Log**:
 ```json
 {
   "event": "arbitrage_detected",
@@ -531,92 +524,62 @@ rate(arbitrage_opportunities_detected_total[1h])
 }
 ```
 
-**Benefits**:
-- Easy to parse (Splunk, Datadog, Elasticsearch)
-- Queryable (WHERE event="arbitrage_detected" AND profit > 0.05)
-- Context binding (request_id in all logs for tracing)
+Set `ARBITRAGE_JSON_LOGS=false` for human-readable console output during development.
 
 ---
 
-## 🔧 Development
+## Development
 
-### Setup Development Environment
+### Setup
 
 ```bash
-# Install dev dependencies
-poetry install
+# Install all dependencies
+uv sync --group dev
 
 # Install pre-commit hooks
-poetry run pre-commit install
-
-# Run linting
-poetry run ruff check src/
-poetry run black --check src/
-
-# Run type checking
-poetry run mypy src/
+uv run pre-commit install
 ```
 
-### Code Quality Tools
+### Code Quality
 
-- **black**: Code formatting (line length 100)
-- **ruff**: Fast linting (replaces flake8, isort, etc.)
-- **mypy**: Static type checking
-- **pytest**: Testing framework
+```bash
+# Lint
+uv run ruff check src/ tests/
+
+# Format
+uv run ruff format src/ tests/
+
+# Type check
+uv run mypy src/ tests/
+
+# Run everything (lint + type check + tests)
+uv run ruff check src/ tests/ && uv run mypy src/ tests/ && uv run pytest
+```
 
 ### Pre-commit Hooks
 
-Automatically runs before each commit:
-- black (formatting)
-- ruff (linting)
+Automatically run before each commit:
+- Trailing whitespace removal
+- End-of-file fixer
+- YAML validation
+- Ruff (lint + format)
 - mypy (type checking)
-- trailing whitespace removal
 
 ---
 
-## 🎓 Interview Talking Points
+## Contributing
 
-### For AI/ML Roles
-
-1. **Production ML Systems**
-   - This demonstrates production patterns applicable to ML deployment
-   - Observability, resilience, graceful degradation
-   - Real-time decision making (detection → execution)
-
-2. **Distributed Systems**
-   - Circuit breaker, retry, rate limiting
-   - Multi-endpoint fallback
-   - Graceful shutdown, signal handling
-
-3. **Software Engineering Best Practices**
-   - Clean architecture, SOLID principles
-   - Comprehensive testing
-   - Type safety, immutability
-   - Structured logging, metrics
-
-4. **Financial Domain Knowledge**
-   - Arbitrage detection logic
-   - Risk management (position sizing)
-   - P&L tracking
-
-### Key Strengths
-
-- ✅ **Production-ready code** (not toy example)
-- ✅ **Inline comments** explaining architectural decisions
-- ✅ **Comprehensive testing** (not just happy path)
-- ✅ **Real-world patterns** (circuit breaker, exponential backoff)
-- ✅ **Observable** (metrics, structured logging)
-- ✅ **Containerized** (Docker, docker-compose)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, code standards, and pull request guidelines.
 
 ---
 
-## 📄 License
+## License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 This project demonstrates production-grade patterns learned from:
 - Google SRE Book (Golden Signals, error budgets)
@@ -624,19 +587,15 @@ This project demonstrates production-grade patterns learned from:
 - Domain-Driven Design (rich domain models)
 - Clean Architecture (separation of concerns)
 
-Built for learning and portfolio purposes—not actual trading.
+Built for learning and portfolio purposes -- not actual trading.
 
 ---
 
-## 📞 Contact
+## Contact
 
 **Author**: Jacob J. Choi
 **LinkedIn**: https://www.linkedin.com/in/jacobjchoi/
 **GitHub**: https://github.com/jacob7choi-xyz
 **Portfolio**: https://jacobjchoi.xyz/
-
-**Purpose**: For general curiosity and to learn.
-
----
 
 *This is a paper trading system for educational purposes. No real money is used.*

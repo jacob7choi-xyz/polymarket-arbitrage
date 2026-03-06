@@ -15,11 +15,11 @@ Interview Points:
 """
 
 import asyncio
-import random
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta
 from enum import Enum
 from functools import wraps
+import random
 from typing import Any, TypeVar
 
 from ..domain.exceptions import CircuitBreakerOpenError
@@ -579,7 +579,7 @@ if __name__ == "__main__":
             try:
                 await flaky_api_call(should_fail=True)
             except Exception as e:
-                print(f"Attempt {i+1}: {e}")
+                print(f"Attempt {i + 1}: {e}")
 
         # Circuit should be OPEN now
         try:
@@ -619,7 +619,7 @@ if __name__ == "__main__":
         for i in range(15):
             await rate_limiter.acquire()
             elapsed = time.time() - start
-            print(f"Request {i+1} at {elapsed:.2f}s")
+            print(f"Request {i + 1} at {elapsed:.2f}s")
 
     # Run tests
     async def run_all_tests() -> None:

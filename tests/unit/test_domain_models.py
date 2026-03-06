@@ -17,9 +17,10 @@ Interview Point - What to Test in Domain Models:
 from datetime import datetime
 from decimal import Decimal
 
-import pytest
-from polymarket_arbitrage.domain.models import ArbitrageOpportunity, Market, Token
 from pydantic import ValidationError
+import pytest
+
+from polymarket_arbitrage.domain.models import ArbitrageOpportunity, Market, Token
 
 
 class TestToken:

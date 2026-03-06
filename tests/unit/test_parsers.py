@@ -14,7 +14,6 @@ Interview Point - Why Test Parsers?
 - Regression protection (API changes)
 """
 
-
 from polymarket_arbitrage.api.parsers import ResponseParser
 
 

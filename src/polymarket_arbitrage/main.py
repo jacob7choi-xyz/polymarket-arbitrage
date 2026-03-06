@@ -15,12 +15,12 @@ Interview Points:
 """
 
 import asyncio
+from decimal import Decimal
 import json
 import signal
 import sys
-import uuid
-from decimal import Decimal
 from typing import Any, NoReturn
+import uuid
 
 from .api.client import PolymarketClient
 from .api.resilience import CircuitBreaker, RateLimiter

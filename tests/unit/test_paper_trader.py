@@ -17,6 +17,7 @@ Interview Point - Testing Stateful Components:
 from decimal import Decimal
 
 import pytest
+
 from polymarket_arbitrage.domain.models import ArbitrageOpportunity
 from polymarket_arbitrage.execution.paper_trader import PaperTrader
 from polymarket_arbitrage.execution.position_tracker import PositionTracker

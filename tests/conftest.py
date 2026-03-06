@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
+
 from polymarket_arbitrage.domain.models import ArbitrageOpportunity, Market, Token
 
 
