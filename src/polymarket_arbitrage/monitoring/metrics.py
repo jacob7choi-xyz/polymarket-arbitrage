@@ -43,38 +43,9 @@ TRADES_EXECUTED = Counter(
     ["status"],  # Labels: success, failure
 )
 
-API_REQUESTS = Counter(
-    "polymarket_api_requests_total",
-    "Total number of API requests",
-    ["endpoint", "status_code"],  # Labels: which endpoint, what status
-)
-
-MARKETS_ANALYZED = Counter(
-    "markets_analyzed_total",
-    "Total number of markets analyzed for arbitrage",
-)
-
-MARKETS_FILTERED = Counter(
-    "markets_filtered_total",
-    "Total number of markets filtered out",
-    ["reason"],  # Label: why filtered (low_liquidity, expired, etc.)
-)
-
 # ============================================================================
 # Histogram Metrics (distribution of values)
 # ============================================================================
-
-API_LATENCY = Histogram(
-    "polymarket_api_latency_seconds",
-    "API request latency in seconds",
-    ["endpoint"],
-    # Buckets: Expected latencies for API requests
-    # Interview Point: Bucket design matters
-    # - Too few: Poor resolution
-    # - Too many: High cardinality, storage cost
-    # - Tailored to expected values (API typically 0.1-10s)
-    buckets=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0],
-)
 
 ARBITRAGE_PROFIT_PER_DOLLAR = Histogram(
     "arbitrage_profit_per_dollar",
@@ -153,62 +124,6 @@ APP_INFO.info(
 # ============================================================================
 
 
-def track_api_call(
-    endpoint: str,
-) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
-    """
-    Decorator to track API call metrics.
-
-    Tracks:
-    - Request count (by endpoint, status code)
-    - Latency (by endpoint)
-
-    Usage:
-        @track_api_call("/markets")
-        async def get_markets():
-            ...
-
-    Interview Point - Decorator Pattern for Cross-Cutting Concerns:
-    - Metrics collection is cross-cutting (needed everywhere)
-    - Decorator separates concerns (business logic vs metrics)
-    - Easy to add/remove without touching business code
-    """
-
-    def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
-        @wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> T:
-            start = time.time()
-            status_code = "200"  # Default success
-
-            try:
-                result = await func(*args, **kwargs)
-                return result
-
-            except Exception as e:
-                # Extract status code from exception if available
-                status_code = str(getattr(e, "status_code", "500"))
-                raise
-
-            finally:
-                # Record request
-                API_REQUESTS.labels(endpoint=endpoint, status_code=status_code).inc()
-
-                # Record latency
-                duration = time.time() - start
-                API_LATENCY.labels(endpoint=endpoint).observe(duration)
-
-                logger.debug(
-                    "api_call_tracked",
-                    endpoint=endpoint,
-                    status_code=status_code,
-                    duration_seconds=duration,
-                )
-
-        return wrapper
-
-    return decorator
-
-
 def track_detection_cycle(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
     """
     Decorator to track detection cycle duration.
@@ -281,21 +196,6 @@ def record_trade_executed(success: bool) -> None:
         "trade_metric_recorded",
         status=status,
     )
-
-
-def record_market_analyzed() -> None:
-    """Record that a market was analyzed."""
-    MARKETS_ANALYZED.inc()
-
-
-def record_market_filtered(reason: str) -> None:
-    """
-    Record that a market was filtered out.
-
-    Args:
-        reason: Why market was filtered (e.g., "low_liquidity", "expired")
-    """
-    MARKETS_FILTERED.labels(reason=reason).inc()
 
 
 def update_capital_metrics(

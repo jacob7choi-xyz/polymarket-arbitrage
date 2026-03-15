@@ -18,7 +18,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class TokenResponse(BaseModel):
@@ -52,10 +52,7 @@ class TokenResponse(BaseModel):
     # Trading volume (optional, not always provided)
     volume: Decimal | None = None
 
-    class Config:
-        # Allow both snake_case and camelCase field names
-        # Enables: TokenResponse(tokenId="123") OR TokenResponse(token_id="123")
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     @field_validator("outcome")
     @classmethod
@@ -133,8 +130,7 @@ class MarketResponse(BaseModel):
     # Market category (politics, crypto, sports, etc.)
     category: str | None = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     @field_validator("tokens")
     @classmethod
@@ -180,39 +176,6 @@ class MarketResponse(BaseModel):
             # ISO timestamp
             return datetime.fromisoformat(v.replace("Z", "+00:00"))
         raise ValueError(f"Invalid end_date format: {v}")
-
-
-class MarketsListResponse(BaseModel):
-    """
-    Response when fetching multiple markets.
-
-    Polymarket API returns:
-    - Sometimes: {"markets": [...]}
-    - Sometimes: [...]
-
-    This model handles the wrapped format.
-    """
-
-    markets: list[MarketResponse]
-
-
-class ConditionMarketsResponse(BaseModel):
-    """
-    Response when fetching markets by condition_id.
-
-    Different endpoint pattern:
-    - /markets/condition/{id} returns: {"markets": [...], "condition": {...}}
-    - /markets?condition_id={id} returns: [...]
-
-    Why separate model?
-    - Different response structure
-    - Contains additional condition metadata
-    - Easier to maintain separate models than complex unions
-    """
-
-    markets: list[MarketResponse]
-    # Condition metadata (optional, not always needed)
-    condition: dict[str, Any] | None = None
 
 
 class ErrorResponse(BaseModel):

@@ -17,7 +17,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 
 class Token(BaseModel):
@@ -41,9 +41,7 @@ class Token(BaseModel):
     outcome: Literal["Yes", "No"] = Field(description="YES or NO outcome")
     price: Decimal = Field(description="Current price (0.0 to 1.0)")
 
-    class Config:
-        frozen = True  # Immutable
-        str_strip_whitespace = True
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
     @field_validator("price")
     @classmethod
@@ -99,8 +97,7 @@ class Market(BaseModel):
     active: bool = Field(description="Is market active for trading")
     category: str | None = Field(default=None, description="Market category")
 
-    class Config:
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
     @computed_field  # type: ignore
     @property
@@ -224,8 +221,7 @@ class ArbitrageOpportunity(BaseModel):
     expected_profit_per_dollar: Decimal = Field(description="Expected profit per $1 invested")
     recommended_position_size: Decimal = Field(description="Recommended position size (USD)")
 
-    class Config:
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
     @field_validator("expected_profit_per_dollar")
     @classmethod
