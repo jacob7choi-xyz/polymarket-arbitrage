@@ -275,6 +275,7 @@ class CircuitBreaker:
             self._failure_count = 0
             self._success_count = 0
             self._half_open_calls = 0
+            self._last_failure_time = None
             logger.info("circuit_breaker.manually_reset")
 
 

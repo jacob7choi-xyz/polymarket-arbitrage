@@ -141,14 +141,14 @@ def track_detection_cycle(func: Callable[..., Awaitable[T]]) -> Callable[..., Aw
 
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> T:
-        start = time.time()
+        start = time.monotonic()
 
         try:
             result = await func(*args, **kwargs)
             return result
 
         finally:
-            duration = time.time() - start
+            duration = time.monotonic() - start
             DETECTION_CYCLE_DURATION.observe(duration)
 
             logger.debug(
@@ -268,7 +268,10 @@ def update_circuit_breaker_state(name: str, state: str) -> None:
         "open": 2,
     }
 
-    CIRCUIT_BREAKER_STATE.labels(circuit_breaker=name).set(state_map.get(state.lower(), -1))
+    numeric_state = state_map.get(state.lower(), -1)
+    if numeric_state == -1:
+        logger.warning("unknown_circuit_breaker_state", name=name, state=state)
+    CIRCUIT_BREAKER_STATE.labels(circuit_breaker=name).set(numeric_state)
 
 
 # Example usage for documentation

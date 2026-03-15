@@ -214,6 +214,24 @@ class TestCircuitBreaker:
         assert cb.failure_count == 0
 
     @pytest.mark.asyncio
+    async def test_reset_clears_last_failure_time(self, cb: CircuitBreaker) -> None:
+        """reset() clears _last_failure_time so stale times don't cause premature transitions."""
+
+        @cb
+        async def failing() -> str:
+            raise ValueError("boom")
+
+        for _ in range(3):
+            with pytest.raises(ValueError):
+                await failing()
+
+        assert cb.state == CircuitBreakerState.OPEN
+        assert cb._last_failure_time is not None
+
+        await cb.reset()
+        assert cb._last_failure_time is None
+
+    @pytest.mark.asyncio
     async def test_decorator_preserves_return_value(self, cb: CircuitBreaker) -> None:
         """Decorator returns the wrapped function's result unchanged."""
 
@@ -442,6 +460,41 @@ class TestRetryWithBackoff:
 
         result = await add(2, 3, offset=10)
         assert result == 15
+
+    @pytest.mark.asyncio
+    async def test_retry_with_max_attempts_one(self) -> None:
+        """With max_attempts=1, a failing function raises immediately without sleeping."""
+        func = AsyncMock(side_effect=ValueError("instant fail"))
+
+        with patch(
+            "polymarket_arbitrage.api.resilience.asyncio.sleep", new_callable=AsyncMock
+        ) as mock_sleep:
+            with pytest.raises(ValueError, match="instant fail"):
+                await retry_with_backoff(
+                    func, max_attempts=1, jitter=False, exceptions=(ValueError,)
+                )
+
+        assert func.await_count == 1
+        mock_sleep.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_with_retry_retries_on_failure(self) -> None:
+        """with_retry decorator retries on failure and returns on eventual success."""
+        call_count = 0
+
+        @with_retry(max_attempts=3, base_delay=0.1, jitter=False, exceptions=(ValueError,))
+        async def flaky_func() -> str:
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                raise ValueError("not yet")
+            return "success"
+
+        with patch("polymarket_arbitrage.api.resilience.asyncio.sleep", new_callable=AsyncMock):
+            result = await flaky_func()
+
+        assert result == "success"
+        assert call_count == 3
 
     @pytest.mark.asyncio
     async def test_with_retry_preserves_return_value(self) -> None:

@@ -63,8 +63,8 @@ class EndpointStrategy:
             ("/markets", {"condition_id": "0x123"})
         """
         if self.param_location == "path":
-            # Path parameter: Replace {id} in pattern
-            url = self.pattern.replace("{id}", identifier)
+            # Path parameter: Replace {param_name} placeholder in pattern
+            url = self.pattern.replace(f"{{{self.param_name}}}", identifier)
             return (url, None)
         else:
             # Query parameter: Return pattern + query dict

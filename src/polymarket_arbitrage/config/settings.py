@@ -18,7 +18,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .constants import (
@@ -227,7 +227,7 @@ class Settings(BaseSettings):
 
     @field_validator("max_position_size_usd")
     @classmethod
-    def validate_position_size(cls, v: Decimal, info: object) -> Decimal:
+    def validate_position_size(cls, v: Decimal, info: ValidationInfo) -> Decimal:
         """
         Ensure max position size doesn't exceed initial capital.
 
@@ -280,7 +280,7 @@ def load_settings(config_file: Path | None = None) -> Settings:
         import yaml
 
         with open(config_file) as f:
-            config_data = yaml.safe_load(f)
+            config_data = yaml.safe_load(f) or {}
         return Settings(**config_data)
 
     return Settings()
